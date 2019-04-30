@@ -2,35 +2,62 @@
  * @东南巽司坤 版权所有
  */
 
-class WebUtil{
-	static debuggerHandler = new class DebuggerHandler{
-		get(obj,key){
-			console.groupCollapsed("代理调试器读取");
-			console.log("源");
-			console.dir(obj);
-			console.log("键");
-			console.dir(key);
-			let result = obj[key];
-			console.log("返回");
-			console.dir(result);
-			console.trace("栈");
-			console.groupEnd();
-			return result;
+class webUtil{
+	static ProxyDebugger = class ProxyDebugger{
+		static proxyDebugger = new ProxyDebugger();
+		static proxy(obj){
+			return ProxyDebugger.proxyDebugger.proxy(obj);
 		}
-		set(obj,key,val){
-			console.groupCollapsed("代理调试器写入");
-			console.log("源");
-			console.dir(obj);
-			console.log("键");
-			console.dir(key);
-			console.log("值");
-			console.dir(val);
-			console.trace("栈");
-			console.groupEnd();
-			return obj[key] = val;
+		static log(){
+			ProxyDebugger.proxyDebugger.log();
 		}
 		proxy(obj){
 			return new Proxy(obj,this);
 		}
+		list = [];
+		get(obj,key){
+			let result = obj[key];
+			let data = {
+				type:"get",
+				obj:obj,
+				key:key,
+				val:result,
+				time:Date.now()
+			};
+			Error.captureStackTrace(data);
+			data.stack = data.stack.split("\n");
+			data.stack.shift();data.stack.shift();
+			this.list.push(data);
+			return result;
+		}
+		set(obj,key,val){
+			obj[key] = val;
+			let data = {
+				type:"set",
+				obj:obj,
+				key:key,
+				val:val,
+				time:Date.now()
+			};
+			Error.captureStackTrace(data);
+			data.stack = data.stack.split("\n");
+			data.stack.shift();data.stack.shift();
+			this.list.push(data);
+		}
+		log(){
+			let log = this.list;
+			this.list = [];
+			console.group(log);
+			for(let i in log){
+				let d = log[i];
+				console.log("%s %s %o[%o] = %o %i",i,d.type,d.obj,d.key,d.val,d.time);
+				for(let s in d.stack){
+					console.log(d.stack[s]);
+				}
+			}
+			console.groupEnd();
+		}
 	}
 }
+
+
