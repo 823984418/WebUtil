@@ -47,7 +47,7 @@ class webUtil{
 		log(){
 			let log = this.list;
 			this.list = [];
-			console.group(log);
+			console.group("ProxyDebugger",log);
 			for(let i in log){
 				let d = log[i];
 				console.log("%s %s %o[%o] = %o %i",i,d.type,d.obj,d.key,d.val,d.time);
